@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>WebSocket Chat</title>
+</head>
+<body>
+    <h1>WebSocket Chat</h1>
+    <div id="chat"></div>
+    <input type="text" id="recipient" placeholder="Recipient (leave empty for public)"/>
+    <input type="text" id="message" placeholder="Type a message..."/>
+    <button onclick="sendMessage()">Send</button>
+
+    <script>
+        let ws = new WebSocket('ws://localhost:8765');
+
+        ws.onmessage = function(event) {
+            let chat = document.getElementById('chat');
+            let data = JSON.parse(event.data);
+            switch (data.type) {
+                case "info":
+                case "error":
+                case "success":
+                    chat.innerHTML += `<p>${data.message}</p>`;
+                    break;
+                case "chat":
+                    if (data.data.private) {
+                        chat.innerHTML += `<p><strong>Private from ${data.data.username}</strong>: ${data.data.message} <em>${data.data.timestamp}</em></p>`;
+                    } else {
+                        chat.innerHTML += `<p><strong>${data.data.username}</strong>: ${data.data.message} <em>${data.data.timestamp}</em></p>`;
+                    }
+                    break;
+                case "user_list":
+                    chat.innerHTML += `<p>Online users: ${data.users.map(user => user.username).join(', ')}</p>`;
+                    break;
+            }
+        };
+
+        function sendMessage() {
+            let recipient = document.getElementById('recipient').value;
+            let message = document.getElementById('message').value;
+            let msgData = recipient ? {to: recipient, message: message} : {message: message};
+            ws.send(JSON.stringify(msgData));
+            document.getElementById('message').value = '';
+        }
+    </script>
+</body>
+</html>

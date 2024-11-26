@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Admin Control</title>
+</head>
+<body>
+    <h1>Admin Control</h1>
+    <div id="admin-panel">
+        <input type="text" id="admin-command" placeholder="Enter command (mute/unmute/kick)"/>
+        <button onclick="sendAdminCommand()">Send Command</button>
+    </div>
+
+    <script>
+        let ws = new WebSocket('ws://localhost:8765');
+
+        ws.onmessage = function(event) {
+            let data = JSON.parse(event.data);
+            console.log(data.message);
+        };
+
+        function sendAdminCommand() {
+            let input = document.getElementById('admin-command');
+            let command = input.value;
+            ws.send(JSON.stringify({command: command}));
+            input.value = '';
+        }
+    </script>
+</body>
+</html>
